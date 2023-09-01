@@ -16,10 +16,17 @@ export function App() {
   const [isLoading, setIsLoading] = useState(false)
   const [transactions, setTransactions] = useState<any>([])
 
-  const trans = useMemo(
-    () => setTransactions(paginatedTransactions?.data ?? transactionsByEmployee ?? null),
-    [paginatedTransactions, transactionsByEmployee]
-  )
+  const trans = useMemo(() => {
+    const paginatedData = paginatedTransactions?.data ?? [];
+    const employeeData = transactionsByEmployee ?? [];
+  
+    return setTransactions((prevState: any[]) => [
+      ...prevState, 
+      ...paginatedData, 
+      ...employeeData
+    ]);
+    
+  }, [paginatedTransactions, transactionsByEmployee]);
 
   useEffect(() => trans, [trans])
 
@@ -28,9 +35,9 @@ export function App() {
     transactionsByEmployeeUtils.invalidateData()
 
     await employeeUtils.fetchAll()
+    setIsLoading(false)
     await paginatedTransactionsUtils.fetchAll()
 
-    setIsLoading(false)
   }, [employeeUtils, paginatedTransactionsUtils, transactionsByEmployeeUtils])
 
   const loadTransactionsByEmployee = useCallback(
