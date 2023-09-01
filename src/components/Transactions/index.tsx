@@ -32,10 +32,10 @@ export const Transactions: React.FC<TransactionProps> = ({ transactions, setTran
     [fetchWithoutCache, setTransactions]
   )
 
-  if (transactions === null) {
+  if (transactions === null || transactions?.length === 0) {
     return <div className="RampLoading--container">Loading...</div>
   }
-
+    console.log(transactions)
   return (
     <div data-testid="transaction-container">
       <div style={{margin: '0 0 10px 0'}}>

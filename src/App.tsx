@@ -14,17 +14,28 @@ export function App() {
   const { data: paginatedTransactions, ...paginatedTransactionsUtils } = usePaginatedTransactions()
   const { data: transactionsByEmployee, ...transactionsByEmployeeUtils } = useTransactionsByEmployee()
   const [isLoading, setIsLoading] = useState(false)
-  const [transactions, setTransactions] = useState<any>([])
+  const [transactions, setTransactions] = useState<any>(null)
+  const [filterAll, setfilterAll] = useState(true)
 
   const trans = useMemo(() => {
     const paginatedData = paginatedTransactions?.data ?? [];
     const employeeData = transactionsByEmployee ?? [];
   
-    return setTransactions((prevState: any[]) => [
-      ...prevState, 
-      ...paginatedData, 
-      ...employeeData
-    ]);
+    if(filterAll) {
+      if(paginatedTransactions?.nextPage === null || (paginatedTransactions?.nextPage && paginatedTransactions.nextPage !== 1)){
+        return setTransactions((prevState: any[]) => [
+          ...prevState, 
+          ...paginatedData, 
+          ...employeeData
+        ]);
+      }else{
+        return setTransactions([...paginatedData]);
+      }
+    }else{
+      return setTransactions([
+        ...employeeData
+      ]);
+    }
     
   }, [paginatedTransactions, transactionsByEmployee]);
 
@@ -44,7 +55,6 @@ export function App() {
     async (employeeId: string) => {
       paginatedTransactionsUtils.invalidateData()
       
-      console.log(employeeId)
       if(employeeId !== ''){
         await transactionsByEmployeeUtils.fetchById(employeeId)
       }else{
@@ -79,6 +89,13 @@ export function App() {
             label: `${item.firstName} ${item.lastName}`,
           })}
           onChange={async (newValue) => {
+            const currentFilter = `${newValue?.firstName} ${newValue?.lastName}`
+            if(currentFilter !== 'All Employees') {
+              setfilterAll(false)
+            }else{
+              setfilterAll(true)
+            }
+
             if (newValue === null) {
               return
             }
@@ -89,14 +106,10 @@ export function App() {
 
         <div className="RampBreak--l" />
 
-        <div>
-          <ApprovedTransaction transactions={transactions}/>
-        </div>
-
         <div className="RampGrid">
           <Transactions transactions={transactions} setTransactions={setTransactions} />
 
-          {transactions !== null && (
+          {(transactions !== null && filterAll && paginatedTransactions?.nextPage !== null) ? (
             <button
               className="RampButton"
               disabled={paginatedTransactionsUtils.loading}
@@ -106,6 +119,8 @@ export function App() {
             >
               View More
             </button>
+          ):(
+            <div></div>
           )}
         </div>
       </main>
